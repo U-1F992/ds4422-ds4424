@@ -107,11 +107,17 @@ extern "C"
             return DS4422_DS4424_ERROR_INVALID_DATA;
         }
 
-        return ds4422_ds4424_i2c_master_write(ds4422_ds4424->i2c_master,                             //
-                                              ds4422_ds4424->slave_address,                          //
-                                              (uint8_t[]){(uint8_t)current_source,                   //
-                                                          (uint8_t)((uint8_t)sign_bit << 7 | data)}, //
-                                              2);
+        DS4422_DS4424Error err = ds4422_ds4424_i2c_master_write(ds4422_ds4424->i2c_master,                             //
+                                                                ds4422_ds4424->slave_address,                          //
+                                                                (uint8_t[]){(uint8_t)current_source,                   //
+                                                                            (uint8_t)((uint8_t)sign_bit << 7 | data)}, //
+                                                                2);
+        if (err != DS4422_DS4424_SUCCESS)
+        {
+            return DS4422_DS4424_ERROR_I2C_FAILURE;
+        }
+
+        return DS4422_DS4424_SUCCESS;
     }
 
     static inline DS4422_DS4424Error ds4422_ds4424_out0_sink(DS4422_DS4424 *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT0, DS4422_DS4424_SINK, data); }
