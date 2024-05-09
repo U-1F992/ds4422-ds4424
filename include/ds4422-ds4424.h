@@ -33,7 +33,15 @@ extern "C"
         DS4422_DS4424Error (*write)(struct DS4422_DS4424I2CMaster *, DS4422_DS4424I2CSlaveAddress, uint8_t[], size_t);
     } DS4422_DS4424I2CMaster;
 
-    static inline DS4422_DS4424Error ds4422_ds4424_i2c_master_write(DS4422_DS4424I2CMaster *writer, DS4422_DS4424I2CSlaveAddress slave_address, uint8_t data[], size_t size) { return writer->write(writer, slave_address, data, size); }
+    static inline DS4422_DS4424Error ds4422_ds4424_i2c_master_write(DS4422_DS4424I2CMaster *writer, DS4422_DS4424I2CSlaveAddress slave_address, uint8_t data[], size_t size)
+    {
+        if (writer == NULL)
+        {
+            return DS4422_DS4424_ERROR_NULL_POINTER;
+        }
+
+        return writer->write(writer, slave_address, data, size);
+    }
 
     typedef struct DS4422_DS4424
     {
