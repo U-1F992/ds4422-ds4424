@@ -1,4 +1,4 @@
-#include <ds4422-ds4424.h>
+#include <ds4422_ds4424.h>
 
 #include <assert.h>
 #include <stdio.h>

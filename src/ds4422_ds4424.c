@@ -1,4 +1,4 @@
-#include <ds4422-ds4424.h>
+#include <ds4422_ds4424.h>
 
 DS4422_DS4424Error ds4422_ds4424_i2c_master_write(DS4422_DS4424I2CMaster *writer, DS4422_DS4424I2CSlaveAddress slave_address, uint8_t data[], size_t size)
 {

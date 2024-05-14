@@ -3,6 +3,8 @@
 ## Basic usage
 
 ```c
+#include <ds4422_ds4424.h>
+
 typedef struct I2CMaster
 {
     DS4422_DS4424I2CMaster parent;
