@@ -1,6 +1,6 @@
 #include <ds4422_ds4424.h>
 
-DS4422_DS4424Error ds4422_ds4424_i2c_master_write(DS4422_DS4424I2CMaster *writer, DS4422_DS4424I2CSlaveAddress slave_address, uint8_t data[], size_t size)
+ds4422_ds4424_error_t ds4422_ds4424_i2c_master_write(ds4422_ds4424_i2c_master_t *writer, ds4422_ds4424_i2c_slave_address_t slave_address, uint8_t data[], size_t size)
 {
     if (writer == NULL)
     {
@@ -10,7 +10,7 @@ DS4422_DS4424Error ds4422_ds4424_i2c_master_write(DS4422_DS4424I2CMaster *writer
     return writer->write(writer, slave_address, data, size);
 }
 
-DS4422_DS4424Error ds4422_ds4424_init(DS4422_DS4424 *ds4422_ds4424, DS4422_DS4424I2CMaster *i2c_master, DS4422_DS4424I2CSlaveAddress slave_address)
+ds4422_ds4424_error_t ds4422_ds4424_init(ds4422_ds4424_t *ds4422_ds4424, ds4422_ds4424_i2c_master_t *i2c_master, ds4422_ds4424_i2c_slave_address_t slave_address)
 {
     if (ds4422_ds4424 == NULL ||
         i2c_master == NULL)
@@ -45,7 +45,7 @@ typedef enum DS4422_DS4424SignBit
     DS4422_DS4424_SOURCE = 1
 } DS4422_DS4424SignBit;
 
-static DS4422_DS4424Error ds4422_ds4424_write(DS4422_DS4424 *ds4422_ds4424, DS4422_DS4424CurrentSources current_source, DS4422_DS4424SignBit sign_bit, uint8_t data)
+static ds4422_ds4424_error_t ds4422_ds4424_write(ds4422_ds4424_t *ds4422_ds4424, DS4422_DS4424CurrentSources current_source, DS4422_DS4424SignBit sign_bit, uint8_t data)
 {
     if (ds4422_ds4424 == NULL)
     {
@@ -70,10 +70,10 @@ static DS4422_DS4424Error ds4422_ds4424_write(DS4422_DS4424 *ds4422_ds4424, DS44
 
     uint8_t data_[] = {(uint8_t)current_source, //
                        (uint8_t)(((uint8_t)sign_bit) << 7 | data)};
-    DS4422_DS4424Error err = ds4422_ds4424_i2c_master_write(ds4422_ds4424->i2c_master,    //
-                                                            ds4422_ds4424->slave_address, //
-                                                            data_,                        //
-                                                            sizeof(data_) / sizeof(uint8_t));
+    ds4422_ds4424_error_t err = ds4422_ds4424_i2c_master_write(ds4422_ds4424->i2c_master,    //
+                                                               ds4422_ds4424->slave_address, //
+                                                               data_,                        //
+                                                               sizeof(data_) / sizeof(uint8_t));
     if (err != DS4422_DS4424_SUCCESS)
     {
         return DS4422_DS4424_ERROR_I2C_FAILURE;
@@ -82,11 +82,11 @@ static DS4422_DS4424Error ds4422_ds4424_write(DS4422_DS4424 *ds4422_ds4424, DS44
     return DS4422_DS4424_SUCCESS;
 }
 
-DS4422_DS4424Error ds4422_ds4424_out0_sink(DS4422_DS4424 *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT0, DS4422_DS4424_SINK, data); }
-DS4422_DS4424Error ds4422_ds4424_out0_source(DS4422_DS4424 *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT0, DS4422_DS4424_SOURCE, data); }
-DS4422_DS4424Error ds4422_ds4424_out1_sink(DS4422_DS4424 *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT1, DS4422_DS4424_SINK, data); }
-DS4422_DS4424Error ds4422_ds4424_out1_source(DS4422_DS4424 *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT1, DS4422_DS4424_SOURCE, data); }
-DS4422_DS4424Error ds4422_ds4424_out2_sink(DS4422_DS4424 *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT2, DS4422_DS4424_SINK, data); }
-DS4422_DS4424Error ds4422_ds4424_out2_source(DS4422_DS4424 *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT2, DS4422_DS4424_SOURCE, data); }
-DS4422_DS4424Error ds4422_ds4424_out3_sink(DS4422_DS4424 *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT3, DS4422_DS4424_SINK, data); }
-DS4422_DS4424Error ds4422_ds4424_out3_source(DS4422_DS4424 *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT3, DS4422_DS4424_SOURCE, data); }
+ds4422_ds4424_error_t ds4422_ds4424_out0_sink(ds4422_ds4424_t *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT0, DS4422_DS4424_SINK, data); }
+ds4422_ds4424_error_t ds4422_ds4424_out0_source(ds4422_ds4424_t *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT0, DS4422_DS4424_SOURCE, data); }
+ds4422_ds4424_error_t ds4422_ds4424_out1_sink(ds4422_ds4424_t *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT1, DS4422_DS4424_SINK, data); }
+ds4422_ds4424_error_t ds4422_ds4424_out1_source(ds4422_ds4424_t *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT1, DS4422_DS4424_SOURCE, data); }
+ds4422_ds4424_error_t ds4422_ds4424_out2_sink(ds4422_ds4424_t *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT2, DS4422_DS4424_SINK, data); }
+ds4422_ds4424_error_t ds4422_ds4424_out2_source(ds4422_ds4424_t *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT2, DS4422_DS4424_SOURCE, data); }
+ds4422_ds4424_error_t ds4422_ds4424_out3_sink(ds4422_ds4424_t *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT3, DS4422_DS4424_SINK, data); }
+ds4422_ds4424_error_t ds4422_ds4424_out3_source(ds4422_ds4424_t *ds4422_ds4424, uint8_t data) { return ds4422_ds4424_write(ds4422_ds4424, DS4422_DS4424_OUT3, DS4422_DS4424_SOURCE, data); }
