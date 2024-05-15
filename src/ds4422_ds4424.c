@@ -1,13 +1,13 @@
 #include <ds4422_ds4424.h>
 
-ds4422_ds4424_error_t ds4422_ds4424_i2c_master_write(ds4422_ds4424_i2c_master_t *writer, ds4422_ds4424_i2c_slave_address_t slave_address, uint8_t data[], size_t size)
+ds4422_ds4424_error_t ds4422_ds4424_i2c_master_write(ds4422_ds4424_i2c_master_t *i2c_master, ds4422_ds4424_i2c_slave_address_t slave_address, uint8_t data[], size_t size)
 {
-    if (writer == NULL)
+    if (i2c_master == NULL)
     {
         return DS4422_DS4424_ERROR_NULL_POINTER;
     }
 
-    return writer->write(writer, slave_address, data, size);
+    return i2c_master->write(i2c_master, slave_address, data, size);
 }
 
 ds4422_ds4424_error_t ds4422_ds4424_init(ds4422_ds4424_t *ds4422_ds4424, ds4422_ds4424_i2c_master_t *i2c_master, ds4422_ds4424_i2c_slave_address_t slave_address)
