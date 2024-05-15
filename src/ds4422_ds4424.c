@@ -31,21 +31,21 @@ ds4422_ds4424_error_t ds4422_ds4424_init(ds4422_ds4424_t *ds4422_ds4424, ds4422_
     return DS4422_DS4424_SUCCESS;
 }
 
-typedef enum DS4422_DS4424CurrentSources
+typedef enum ds4422_ds4424_current_sources_t
 {
     DS4422_DS4424_OUT0 = 0xF8,
     DS4422_DS4424_OUT1 = 0xF9,
     DS4422_DS4424_OUT2 = 0xFA,
     DS4422_DS4424_OUT3 = 0xFB
-} DS4422_DS4424CurrentSources;
+} ds4422_ds4424_current_sources_t;
 
-typedef enum DS4422_DS4424SignBit
+typedef enum ds4422_ds4424_sign_bit_t
 {
     DS4422_DS4424_SINK = 0,
     DS4422_DS4424_SOURCE = 1
-} DS4422_DS4424SignBit;
+} ds4422_ds4424_sign_bit_t;
 
-static ds4422_ds4424_error_t ds4422_ds4424_write(ds4422_ds4424_t *ds4422_ds4424, DS4422_DS4424CurrentSources current_source, DS4422_DS4424SignBit sign_bit, uint8_t data)
+static ds4422_ds4424_error_t ds4422_ds4424_write(ds4422_ds4424_t *ds4422_ds4424, ds4422_ds4424_current_sources_t current_source, ds4422_ds4424_sign_bit_t sign_bit, uint8_t data)
 {
     if (ds4422_ds4424 == NULL)
     {
