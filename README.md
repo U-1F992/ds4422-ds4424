@@ -5,20 +5,20 @@
 ```c
 #include <ds4422_ds4424.h>
 
-typedef struct I2CMaster
+typedef struct i2c_master_t
 {
-    DS4422_DS4424I2CMaster parent;
+    ds4422_ds4424_i2c_master_t parent;
     /* ... */
-} I2CMaster;
+} i2c_master_t;
 
-DS4422_DS4424Error i2c_master_write(DS4422_DS4424I2CMaster *parent, DS4422_DS4424I2CSlaveAddress slave_address, uint8_t data[], size_t size)
+ds4422_ds4424_error_t i2c_master_write(ds4422_ds4424_i2c_master_t *parent, ds4422_ds4424_i2c_slave_address_t slave_address, uint8_t data[], size_t size)
 {
-    I2CMaster *i2c_master = (I2CMaster *)parent;
+    i2c_master_t *i2c_master = (i2c_master_t *)parent;
     /* ... */
     return DS4422_DS4424_SUCCESS;
 }
 
-void i2c_master_init(I2CMaster *i2c_master)
+void i2c_master_init(i2c_master_t *i2c_master)
 {
     i2c_master->parent.write = i2c_master_write;
     /* ... */
@@ -26,11 +26,11 @@ void i2c_master_init(I2CMaster *i2c_master)
 
 int main(void)
 {
-    I2CMaster i2c_master;
+    i2c_master_t i2c_master;
     i2c_master_init(&i2c_master);
 
-    DS4422_DS4424 ds4422_ds4424;
-    ds4422_ds4424_init(&ds4422_ds4424, (DS4422_DS4424I2CMaster *)&i2c_master, DS4422_DS4424_A0_GND_A1_GND);
+    ds4422_ds4424_t ds4422_ds4424;
+    ds4422_ds4424_init(&ds4422_ds4424, (ds4422_ds4424_i2c_master_t *)&i2c_master, DS4422_DS4424_A0_GND_A1_GND);
 
     /* ... */
 }
