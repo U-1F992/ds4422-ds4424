@@ -1,5 +1,7 @@
 #include <ds4422_ds4424.h>
 
+#include <assert.h>
+
 ds4422_ds4424_error_t ds4422_ds4424_i2c_master_write(ds4422_ds4424_i2c_master_t *i2c_master, ds4422_ds4424_i2c_slave_address_t slave_address, uint8_t data[], size_t size)
 {
     if (i2c_master == NULL)
@@ -47,21 +49,16 @@ typedef enum ds4422_ds4424_sign_bit_t
 
 static ds4422_ds4424_error_t ds4422_ds4424_write(ds4422_ds4424_t *ds4422_ds4424, ds4422_ds4424_current_sources_t current_source, ds4422_ds4424_sign_bit_t sign_bit, uint8_t data)
 {
+    assert(current_source == DS4422_DS4424_OUT0 ||
+           current_source == DS4422_DS4424_OUT1 ||
+           current_source == DS4422_DS4424_OUT2 ||
+           current_source == DS4422_DS4424_OUT3);
+    assert(sign_bit == DS4422_DS4424_SINK ||
+           sign_bit == DS4422_DS4424_SOURCE);
+
     if (ds4422_ds4424 == NULL)
     {
         return DS4422_DS4424_ERROR_NULL_POINTER;
-    }
-    else if (!(current_source == DS4422_DS4424_OUT0 ||
-               current_source == DS4422_DS4424_OUT1 ||
-               current_source == DS4422_DS4424_OUT2 ||
-               current_source == DS4422_DS4424_OUT3))
-    {
-        return DS4422_DS4424_ERROR_INVALID_CURRENT_SOURCE;
-    }
-    else if (!(sign_bit == DS4422_DS4424_SINK ||
-               sign_bit == DS4422_DS4424_SOURCE))
-    {
-        return DS4422_DS4424_ERROR_INVALID_SIGN_BIT;
     }
     else if (0x7F /* 0b1111111 */ < data)
     {
