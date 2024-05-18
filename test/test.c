@@ -13,27 +13,30 @@ typedef struct test_i2c_master_t
 {
     ds4422_ds4424_i2c_master_t parent;
     ds4422_ds4424_i2c_slave_address_t last_written_address;
-    size_t last_written_size;
-    uint8_t last_written_data[128];
+    size_t recent_size;
+    uint8_t recent_data[128];
 } test_i2c_master_t;
 
 ds4422_ds4424_error_t test_i2c_master_write(ds4422_ds4424_i2c_master_t *parent, ds4422_ds4424_i2c_slave_address_t slave_address, uint8_t data[], size_t size)
 {
     test_i2c_master_t *i2c_master = (test_i2c_master_t *)parent;
+    assert(i2c_master != NULL);
+
     i2c_master->last_written_address = slave_address;
-    i2c_master->last_written_size = size;
+    i2c_master->recent_size = size;
     for (size_t i = 0; i < size; i++)
     {
-        i2c_master->last_written_data[i] = data[i];
+        i2c_master->recent_data[i] = data[i];
     }
+
     return DS4422_DS4424_SUCCESS;
 }
 
 void test_i2c_master_init(test_i2c_master_t *i2c_master)
 {
+    assert(i2c_master != NULL);
+
     i2c_master->parent.write = test_i2c_master_write;
-    i2c_master->last_written_address = 0;
-    i2c_master->last_written_size = 0;
 }
 
 int test_ds4422_ds4424_init(void)
@@ -113,10 +116,11 @@ int test_ds4422_ds4424_out0_sink(void)
     for (size_t i = 0; i < 24; i++)
     {
         test_i2c_master_init(&i2c_master[i]);
-        ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
-                                                                                            : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
-                                                                                            : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
-                                                                                                                  : DS4422_DS4424_A0_VCC_A1_VCC);
+        ds4422_ds4424_error_t err = ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
+                                                                                                                        : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
+                                                                                                                        : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
+                                                                                                                                              : DS4422_DS4424_A0_VCC_A1_VCC);
+        assert(err == DS4422_DS4424_SUCCESS);
     }
 
     test_case_t test_cases[] = {{.ds4422_ds4424 = NULL, /*              */ .i2c_master = &i2c_master[0], /* */ .data = 0, /*  */ .expected_ret = DS4422_DS4424_ERROR_NULL_POINTER},
@@ -161,7 +165,7 @@ int test_ds4422_ds4424_out0_sink(void)
             continue;
         }
 
-        size_t actual_slave_address = test_case->i2c_master->last_written_address;
+        ds4422_ds4424_i2c_slave_address_t actual_slave_address = test_case->i2c_master->last_written_address;
         if (test_case->expected_slave_address != actual_slave_address)
         {
             fprintf(stderr, "%sindex: %d, expected_slave_address: %d, actual_slave_address: %d%s\n", TEST_TEXT_RED, i, test_case->expected_slave_address, actual_slave_address, TEST_TEXT_RESET);
@@ -169,7 +173,7 @@ int test_ds4422_ds4424_out0_sink(void)
             continue;
         }
 
-        size_t actual_size = test_case->i2c_master->last_written_size;
+        size_t actual_size = test_case->i2c_master->recent_size;
         if (test_case->expected_size != actual_size)
         {
             fprintf(stderr, "%sindex: %d, expected_size: %d, actual_size: %d%s\n", TEST_TEXT_RED, i, test_case->expected_size, actual_size, TEST_TEXT_RESET);
@@ -177,7 +181,7 @@ int test_ds4422_ds4424_out0_sink(void)
             continue;
         }
 
-        uint8_t *actual_data = test_case->i2c_master->last_written_data;
+        uint8_t *actual_data = test_case->i2c_master->recent_data;
         for (size_t j = 0; j < actual_size; j++)
         {
             if (test_case->expected_data[j] != actual_data[j])
@@ -214,10 +218,11 @@ int test_ds4422_ds4424_out0_source(void)
     for (size_t i = 0; i < 24; i++)
     {
         test_i2c_master_init(&i2c_master[i]);
-        ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
-                                                                                            : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
-                                                                                            : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
-                                                                                                                  : DS4422_DS4424_A0_VCC_A1_VCC);
+        ds4422_ds4424_error_t err = ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
+                                                                                                                        : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
+                                                                                                                        : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
+                                                                                                                                              : DS4422_DS4424_A0_VCC_A1_VCC);
+        assert(err == DS4422_DS4424_SUCCESS);
     }
 
     test_case_t test_cases[] = {{.ds4422_ds4424 = NULL, /*              */ .i2c_master = &i2c_master[0], /* */ .data = 0, /*  */ .expected_ret = DS4422_DS4424_ERROR_NULL_POINTER},
@@ -262,7 +267,7 @@ int test_ds4422_ds4424_out0_source(void)
             continue;
         }
 
-        size_t actual_slave_address = test_case->i2c_master->last_written_address;
+        ds4422_ds4424_i2c_slave_address_t actual_slave_address = test_case->i2c_master->last_written_address;
         if (test_case->expected_slave_address != actual_slave_address)
         {
             fprintf(stderr, "%sindex: %d, expected_slave_address: %d, actual_slave_address: %d%s\n", TEST_TEXT_RED, i, test_case->expected_slave_address, actual_slave_address, TEST_TEXT_RESET);
@@ -270,7 +275,7 @@ int test_ds4422_ds4424_out0_source(void)
             continue;
         }
 
-        size_t actual_size = test_case->i2c_master->last_written_size;
+        size_t actual_size = test_case->i2c_master->recent_size;
         if (test_case->expected_size != actual_size)
         {
             fprintf(stderr, "%sindex: %d, expected_size: %d, actual_size: %d%s\n", TEST_TEXT_RED, i, test_case->expected_size, actual_size, TEST_TEXT_RESET);
@@ -278,7 +283,7 @@ int test_ds4422_ds4424_out0_source(void)
             continue;
         }
 
-        uint8_t *actual_data = test_case->i2c_master->last_written_data;
+        uint8_t *actual_data = test_case->i2c_master->recent_data;
         for (size_t j = 0; j < actual_size; j++)
         {
             if (test_case->expected_data[j] != actual_data[j])
@@ -315,10 +320,11 @@ int test_ds4422_ds4424_out1_sink(void)
     for (size_t i = 0; i < 24; i++)
     {
         test_i2c_master_init(&i2c_master[i]);
-        ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
-                                                                                            : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
-                                                                                            : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
-                                                                                                                  : DS4422_DS4424_A0_VCC_A1_VCC);
+        ds4422_ds4424_error_t err = ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
+                                                                                                                        : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
+                                                                                                                        : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
+                                                                                                                                              : DS4422_DS4424_A0_VCC_A1_VCC);
+        assert(err == DS4422_DS4424_SUCCESS);
     }
 
     test_case_t test_cases[] = {{.ds4422_ds4424 = NULL, /*              */ .i2c_master = &i2c_master[0], /* */ .data = 0, /*  */ .expected_ret = DS4422_DS4424_ERROR_NULL_POINTER},
@@ -363,7 +369,7 @@ int test_ds4422_ds4424_out1_sink(void)
             continue;
         }
 
-        size_t actual_slave_address = test_case->i2c_master->last_written_address;
+        ds4422_ds4424_i2c_slave_address_t actual_slave_address = test_case->i2c_master->last_written_address;
         if (test_case->expected_slave_address != actual_slave_address)
         {
             fprintf(stderr, "%sindex: %d, expected_slave_address: %d, actual_slave_address: %d%s\n", TEST_TEXT_RED, i, test_case->expected_slave_address, actual_slave_address, TEST_TEXT_RESET);
@@ -371,7 +377,7 @@ int test_ds4422_ds4424_out1_sink(void)
             continue;
         }
 
-        size_t actual_size = test_case->i2c_master->last_written_size;
+        size_t actual_size = test_case->i2c_master->recent_size;
         if (test_case->expected_size != actual_size)
         {
             fprintf(stderr, "%sindex: %d, expected_size: %d, actual_size: %d%s\n", TEST_TEXT_RED, i, test_case->expected_size, actual_size, TEST_TEXT_RESET);
@@ -379,7 +385,7 @@ int test_ds4422_ds4424_out1_sink(void)
             continue;
         }
 
-        uint8_t *actual_data = test_case->i2c_master->last_written_data;
+        uint8_t *actual_data = test_case->i2c_master->recent_data;
         for (size_t j = 0; j < actual_size; j++)
         {
             if (test_case->expected_data[j] != actual_data[j])
@@ -416,10 +422,11 @@ int test_ds4422_ds4424_out1_source(void)
     for (size_t i = 0; i < 24; i++)
     {
         test_i2c_master_init(&i2c_master[i]);
-        ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
-                                                                                            : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
-                                                                                            : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
-                                                                                                                  : DS4422_DS4424_A0_VCC_A1_VCC);
+        ds4422_ds4424_error_t err = ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
+                                                                                                                        : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
+                                                                                                                        : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
+                                                                                                                                              : DS4422_DS4424_A0_VCC_A1_VCC);
+        assert(err == DS4422_DS4424_SUCCESS);
     }
 
     test_case_t test_cases[] = {{.ds4422_ds4424 = NULL, /*              */ .i2c_master = &i2c_master[0], /* */ .data = 0, /*  */ .expected_ret = DS4422_DS4424_ERROR_NULL_POINTER},
@@ -464,7 +471,7 @@ int test_ds4422_ds4424_out1_source(void)
             continue;
         }
 
-        size_t actual_slave_address = test_case->i2c_master->last_written_address;
+        ds4422_ds4424_i2c_slave_address_t actual_slave_address = test_case->i2c_master->last_written_address;
         if (test_case->expected_slave_address != actual_slave_address)
         {
             fprintf(stderr, "%sindex: %d, expected_slave_address: %d, actual_slave_address: %d%s\n", TEST_TEXT_RED, i, test_case->expected_slave_address, actual_slave_address, TEST_TEXT_RESET);
@@ -472,7 +479,7 @@ int test_ds4422_ds4424_out1_source(void)
             continue;
         }
 
-        size_t actual_size = test_case->i2c_master->last_written_size;
+        size_t actual_size = test_case->i2c_master->recent_size;
         if (test_case->expected_size != actual_size)
         {
             fprintf(stderr, "%sindex: %d, expected_size: %d, actual_size: %d%s\n", TEST_TEXT_RED, i, test_case->expected_size, actual_size, TEST_TEXT_RESET);
@@ -480,7 +487,7 @@ int test_ds4422_ds4424_out1_source(void)
             continue;
         }
 
-        uint8_t *actual_data = test_case->i2c_master->last_written_data;
+        uint8_t *actual_data = test_case->i2c_master->recent_data;
         for (size_t j = 0; j < actual_size; j++)
         {
             if (test_case->expected_data[j] != actual_data[j])
@@ -517,10 +524,11 @@ int test_ds4422_ds4424_out2_sink(void)
     for (size_t i = 0; i < 24; i++)
     {
         test_i2c_master_init(&i2c_master[i]);
-        ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
-                                                                                            : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
-                                                                                            : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
-                                                                                                                  : DS4422_DS4424_A0_VCC_A1_VCC);
+        ds4422_ds4424_error_t err = ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
+                                                                                                                        : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
+                                                                                                                        : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
+                                                                                                                                              : DS4422_DS4424_A0_VCC_A1_VCC);
+        assert(err == DS4422_DS4424_SUCCESS);
     }
 
     test_case_t test_cases[] = {{.ds4422_ds4424 = NULL, /*              */ .i2c_master = &i2c_master[0], /* */ .data = 0, /*  */ .expected_ret = DS4422_DS4424_ERROR_NULL_POINTER},
@@ -565,7 +573,7 @@ int test_ds4422_ds4424_out2_sink(void)
             continue;
         }
 
-        size_t actual_slave_address = test_case->i2c_master->last_written_address;
+        ds4422_ds4424_i2c_slave_address_t actual_slave_address = test_case->i2c_master->last_written_address;
         if (test_case->expected_slave_address != actual_slave_address)
         {
             fprintf(stderr, "%sindex: %d, expected_slave_address: %d, actual_slave_address: %d%s\n", TEST_TEXT_RED, i, test_case->expected_slave_address, actual_slave_address, TEST_TEXT_RESET);
@@ -573,7 +581,7 @@ int test_ds4422_ds4424_out2_sink(void)
             continue;
         }
 
-        size_t actual_size = test_case->i2c_master->last_written_size;
+        size_t actual_size = test_case->i2c_master->recent_size;
         if (test_case->expected_size != actual_size)
         {
             fprintf(stderr, "%sindex: %d, expected_size: %d, actual_size: %d%s\n", TEST_TEXT_RED, i, test_case->expected_size, actual_size, TEST_TEXT_RESET);
@@ -581,7 +589,7 @@ int test_ds4422_ds4424_out2_sink(void)
             continue;
         }
 
-        uint8_t *actual_data = test_case->i2c_master->last_written_data;
+        uint8_t *actual_data = test_case->i2c_master->recent_data;
         for (size_t j = 0; j < actual_size; j++)
         {
             if (test_case->expected_data[j] != actual_data[j])
@@ -618,10 +626,11 @@ int test_ds4422_ds4424_out2_source(void)
     for (size_t i = 0; i < 24; i++)
     {
         test_i2c_master_init(&i2c_master[i]);
-        ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
-                                                                                            : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
-                                                                                            : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
-                                                                                                                  : DS4422_DS4424_A0_VCC_A1_VCC);
+        ds4422_ds4424_error_t err = ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
+                                                                                                                        : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
+                                                                                                                        : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
+                                                                                                                                              : DS4422_DS4424_A0_VCC_A1_VCC);
+        assert(err == DS4422_DS4424_SUCCESS);
     }
 
     test_case_t test_cases[] = {{.ds4422_ds4424 = NULL, /*              */ .i2c_master = &i2c_master[0], /* */ .data = 0, /*  */ .expected_ret = DS4422_DS4424_ERROR_NULL_POINTER},
@@ -666,7 +675,7 @@ int test_ds4422_ds4424_out2_source(void)
             continue;
         }
 
-        size_t actual_slave_address = test_case->i2c_master->last_written_address;
+        ds4422_ds4424_i2c_slave_address_t actual_slave_address = test_case->i2c_master->last_written_address;
         if (test_case->expected_slave_address != actual_slave_address)
         {
             fprintf(stderr, "%sindex: %d, expected_slave_address: %d, actual_slave_address: %d%s\n", TEST_TEXT_RED, i, test_case->expected_slave_address, actual_slave_address, TEST_TEXT_RESET);
@@ -674,7 +683,7 @@ int test_ds4422_ds4424_out2_source(void)
             continue;
         }
 
-        size_t actual_size = test_case->i2c_master->last_written_size;
+        size_t actual_size = test_case->i2c_master->recent_size;
         if (test_case->expected_size != actual_size)
         {
             fprintf(stderr, "%sindex: %d, expected_size: %d, actual_size: %d%s\n", TEST_TEXT_RED, i, test_case->expected_size, actual_size, TEST_TEXT_RESET);
@@ -682,7 +691,7 @@ int test_ds4422_ds4424_out2_source(void)
             continue;
         }
 
-        uint8_t *actual_data = test_case->i2c_master->last_written_data;
+        uint8_t *actual_data = test_case->i2c_master->recent_data;
         for (size_t j = 0; j < actual_size; j++)
         {
             if (test_case->expected_data[j] != actual_data[j])
@@ -719,10 +728,11 @@ int test_ds4422_ds4424_out3_sink(void)
     for (size_t i = 0; i < 24; i++)
     {
         test_i2c_master_init(&i2c_master[i]);
-        ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
-                                                                                            : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
-                                                                                            : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
-                                                                                                                  : DS4422_DS4424_A0_VCC_A1_VCC);
+        ds4422_ds4424_error_t err = ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
+                                                                                                                        : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
+                                                                                                                        : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
+                                                                                                                                              : DS4422_DS4424_A0_VCC_A1_VCC);
+        assert(err == DS4422_DS4424_SUCCESS);
     }
 
     test_case_t test_cases[] = {{.ds4422_ds4424 = NULL, /*              */ .i2c_master = &i2c_master[0], /* */ .data = 0, /*  */ .expected_ret = DS4422_DS4424_ERROR_NULL_POINTER},
@@ -767,7 +777,7 @@ int test_ds4422_ds4424_out3_sink(void)
             continue;
         }
 
-        size_t actual_slave_address = test_case->i2c_master->last_written_address;
+        ds4422_ds4424_i2c_slave_address_t actual_slave_address = test_case->i2c_master->last_written_address;
         if (test_case->expected_slave_address != actual_slave_address)
         {
             fprintf(stderr, "%sindex: %d, expected_slave_address: %d, actual_slave_address: %d%s\n", TEST_TEXT_RED, i, test_case->expected_slave_address, actual_slave_address, TEST_TEXT_RESET);
@@ -775,7 +785,7 @@ int test_ds4422_ds4424_out3_sink(void)
             continue;
         }
 
-        size_t actual_size = test_case->i2c_master->last_written_size;
+        size_t actual_size = test_case->i2c_master->recent_size;
         if (test_case->expected_size != actual_size)
         {
             fprintf(stderr, "%sindex: %d, expected_size: %d, actual_size: %d%s\n", TEST_TEXT_RED, i, test_case->expected_size, actual_size, TEST_TEXT_RESET);
@@ -783,7 +793,7 @@ int test_ds4422_ds4424_out3_sink(void)
             continue;
         }
 
-        uint8_t *actual_data = test_case->i2c_master->last_written_data;
+        uint8_t *actual_data = test_case->i2c_master->recent_data;
         for (size_t j = 0; j < actual_size; j++)
         {
             if (test_case->expected_data[j] != actual_data[j])
@@ -820,10 +830,11 @@ int test_ds4422_ds4424_out3_source(void)
     for (size_t i = 0; i < 24; i++)
     {
         test_i2c_master_init(&i2c_master[i]);
-        ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
-                                                                                            : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
-                                                                                            : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
-                                                                                                                  : DS4422_DS4424_A0_VCC_A1_VCC);
+        ds4422_ds4424_error_t err = ds4422_ds4424_init(&ds4422_ds4424[i], (ds4422_ds4424_i2c_master_t *)&i2c_master[i], (0 <= i && i < 6)     ? DS4422_DS4424_A0_GND_A1_GND //
+                                                                                                                        : (6 <= i && i < 12)  ? DS4422_DS4424_A0_VCC_A1_GND //
+                                                                                                                        : (12 <= i && i < 18) ? DS4422_DS4424_A0_GND_A1_VCC //
+                                                                                                                                              : DS4422_DS4424_A0_VCC_A1_VCC);
+        assert(err == DS4422_DS4424_SUCCESS);
     }
 
     test_case_t test_cases[] = {{.ds4422_ds4424 = NULL, /*              */ .i2c_master = &i2c_master[0], /* */ .data = 0, /*  */ .expected_ret = DS4422_DS4424_ERROR_NULL_POINTER},
@@ -868,7 +879,7 @@ int test_ds4422_ds4424_out3_source(void)
             continue;
         }
 
-        size_t actual_slave_address = test_case->i2c_master->last_written_address;
+        ds4422_ds4424_i2c_slave_address_t actual_slave_address = test_case->i2c_master->last_written_address;
         if (test_case->expected_slave_address != actual_slave_address)
         {
             fprintf(stderr, "%sindex: %d, expected_slave_address: %d, actual_slave_address: %d%s\n", TEST_TEXT_RED, i, test_case->expected_slave_address, actual_slave_address, TEST_TEXT_RESET);
@@ -876,7 +887,7 @@ int test_ds4422_ds4424_out3_source(void)
             continue;
         }
 
-        size_t actual_size = test_case->i2c_master->last_written_size;
+        size_t actual_size = test_case->i2c_master->recent_size;
         if (test_case->expected_size != actual_size)
         {
             fprintf(stderr, "%sindex: %d, expected_size: %d, actual_size: %d%s\n", TEST_TEXT_RED, i, test_case->expected_size, actual_size, TEST_TEXT_RESET);
@@ -884,7 +895,7 @@ int test_ds4422_ds4424_out3_source(void)
             continue;
         }
 
-        uint8_t *actual_data = test_case->i2c_master->last_written_data;
+        uint8_t *actual_data = test_case->i2c_master->recent_data;
         for (size_t j = 0; j < actual_size; j++)
         {
             if (test_case->expected_data[j] != actual_data[j])
