@@ -1,7 +1,5 @@
 # [DS4422](https://www.analog.com/products/ds4422.html)/[DS4424](https://www.analog.com/products/ds4424.html)
 
-## Basic usage
-
 ```c
 #include <ds4422_ds4424.h>
 
