@@ -28,6 +28,10 @@ extern "C"
         DS4422_DS4424_A0_VCC_A1_VCC = 0xE0  /* 0b1110000x */
     } ds4422_ds4424_i2c_slave_address_t;
 
+    /**
+     * This naming is derived from the Analog Device's article.
+     * https://www.analog.com/resources/technical-articles/i2c-primer-what-is-i2c-part-1.html
+     */
     typedef struct ds4422_ds4424_i2c_master_t
     {
         ds4422_ds4424_error_t (*write)(struct ds4422_ds4424_i2c_master_t *, ds4422_ds4424_i2c_slave_address_t, uint8_t[], size_t);
